@@ -43,6 +43,7 @@ public class MiniNB implements Jugador, IAuto {
         //int columna_elegida = miniMax(t);
         System.out.println("Numero de nodos explorados: " + jugadasExploradas);
         jugadasExploradas = 0;
+        t.pintaTaulerALaConsola();
         //return columna_elegida;
         if (poda) {
             return minimaxPoda(t, profundidad, true, Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -57,13 +58,13 @@ public class MiniNB implements Jugador, IAuto {
 
     private int minimax(Tauler t, int prof, boolean esMax) {
         if (prof == 0) {
-            int heuristica = 0; //funcion heuristica
+            int heuristica = HeuristicaPocha(t); //funcion heuristica
             return heuristica;
         }
         if (esMax) {
             int colMax = 0;
             int max = Integer.MIN_VALUE; //funcion heuristica???
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < t.getMida(); i++) {
                 if (t.movpossible(i)) {
                     Tauler nou = new Tauler(t);
                     nou.afegeix(i, 1);
@@ -84,7 +85,7 @@ public class MiniNB implements Jugador, IAuto {
             
         } else {
             int min = Integer.MAX_VALUE; //funcion heuristica???
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < t.getMida(); i++) {
                 if (t.movpossible(i)) {
                     Tauler nou = new Tauler(t);
                     nou.afegeix(i, -1);
@@ -100,13 +101,13 @@ public class MiniNB implements Jugador, IAuto {
 
     private int minimaxPoda(Tauler t, int prof, boolean esMax, int alpha, int beta) {
         if (prof == 0) {
-            int heuristica = 0; //funcion heuristica
+            int heuristica = HeuristicaPocha(t); //funcion heuristica
             return heuristica;
         }
         if (esMax) {
             int colMax = 0;
-            int max = Integer.MIN_VALUE; //funcion heuristica???
-            for (int i = 0; i < 8; i++) {
+            int max = Integer.MIN_VALUE; //HeuristicaPocha(t);
+            for (int i = 0; i < t.getMida(); i++) {
                 if (t.movpossible(i)) {
                     Tauler nou = new Tauler(t);
                     nou.afegeix(i, 1);
@@ -117,7 +118,7 @@ public class MiniNB implements Jugador, IAuto {
                     }
                     alpha = Math.max(alpha, aux);
                     if (beta<=alpha){
-                        i = 8;
+                        i = t.getMida();
                     }
                     
                     jugadasExploradas++;
@@ -128,8 +129,8 @@ public class MiniNB implements Jugador, IAuto {
             }
             return max;
         } else {
-            int min = Integer.MAX_VALUE; //funcion heuristica???
-            for (int i = 0; i < 8; i++) {
+            int min = Integer.MAX_VALUE; //HeuristicaPocha(t);
+            for (int i = 0; i < t.getMida(); i++) {
                 if (t.movpossible(i)) {
                     Tauler nou = new Tauler(t);
                     nou.afegeix(i, -1);
@@ -137,7 +138,7 @@ public class MiniNB implements Jugador, IAuto {
                     min = Math.min(min, aux);
                     beta = Math.min(beta, aux);
                     if (beta<=alpha){
-                        i = 8;
+                        i = t.getMida();
                     }
                     
                     jugadasExploradas++;
@@ -145,6 +146,15 @@ public class MiniNB implements Jugador, IAuto {
             }
             return min;
         }
+    }
+    
+    
+    private int HeuristicaPocha(Tauler t){
+        int res = 0;
+        
+        t.
+        
+        return res;
     }
 }
 
