@@ -16,39 +16,32 @@ public class MiniNB implements Jugador, IAuto {
     private int jugadasExploradas = 0;
     private int profundidad = 8;
     private boolean poda;
-    private int colorNB = 1;
-
-    private int MAS_INFINITO = Integer.MAX_VALUE;
-    private int MENOS_INFINITO = Integer.MIN_VALUE;
+    private int colorNB = 1;     
 
     private int[][] tablaPuntuacion = {{3, 4, 5, 7, 7, 5, 4, 3},
-    {4, 6, 8, 11, 11, 8, 6, 4},
-    {5, 8, 11, 13, 13, 11, 8, 5},
-    {5, 8, 11, 13, 13, 11, 8, 5},
-    {5, 8, 11, 13, 13, 11, 8, 5},
-    {5, 8, 11, 13, 13, 11, 8, 5},
-    {4, 6, 8, 7, 7, 8, 6, 4},
-    {3, 4, 5, 7, 7, 5, 4, 3}};
+                                      {4, 6, 8, 11, 11, 8, 6, 4},
+                                      {5, 8, 11, 13, 13, 11, 8, 5},
+                                      {5, 8, 11, 13, 13, 11, 8, 5},
+                                      {5, 8, 11, 13, 13, 11, 8, 5},
+                                      {5, 8, 11, 13, 13, 11, 8, 5},
+                                      {4, 6, 8, 7, 7, 8, 6, 4},
+                                      {3, 4, 5, 7, 7, 5, 4, 3}};
 
-    public MiniNB(int depth, boolean Poda) {
+    public MiniNB(int depth, boolean pruning) {
         nombre = "MiniNB";
         jugadasExploradas = 0;
-        poda = Poda;
+        poda = pruning;
         profundidad = depth;
     }
 
     @Override
-    public int moviment(Tauler t, int color) {
+    public int moviment(Tauler t, int color) {                
+        ++jugadasExploradas;
         colorNB = color;
-        //int columna_elegida = miniMax(t);
+        int columna_elegida = miniMax(t);
         System.out.println("Numero de nodos explorados: " + jugadasExploradas);
-        jugadasExploradas = 0;
-        t.pintaTaulerALaConsola();
-        //return columna_elegida;
-        if (poda) {
-            return minimaxPoda(t, profundidad, true, Integer.MIN_VALUE, Integer.MAX_VALUE);
-        }
-        return minimax(t, profundidad, true);
+        
+        return columna_elegida;
     }
 
     @Override
@@ -56,107 +49,84 @@ public class MiniNB implements Jugador, IAuto {
         return nombre;
     }
 
-    private int minimax(Tauler t, int prof, boolean esMax) {
-        if (prof == 0) {
-            int heuristica = HeuristicaPocha(t); //funcion heuristica
-            return heuristica;
-        }
-        if (esMax) {
-            int colMax = 0;
-            int max = Integer.MIN_VALUE; //funcion heuristica???
-            for (int i = 0; i < t.getMida(); i++) {
-                if (t.movpossible(i)) {
-                    Tauler nou = new Tauler(t);
-                    nou.afegeix(i, 1);
-                    int aux = minimax(nou, prof - 1, false);
-                    if (max < aux) {
-                        max = aux;
-                        colMax = i;
-                    }
-                    
-                    jugadasExploradas++;
-                }
-
-            }
-            if (prof == profundidad) {
-                return colMax;
-            }
-            return max;
-            
-        } else {
-            int min = Integer.MAX_VALUE; //funcion heuristica???
-            for (int i = 0; i < t.getMida(); i++) {
-                if (t.movpossible(i)) {
-                    Tauler nou = new Tauler(t);
-                    nou.afegeix(i, -1);
-                    int aux = minimax(nou, prof - 1, true);
-                    min = Math.min(min, aux);
-                    
-                    jugadasExploradas++;
+    // Funcion que implementa el algortimo MiniMax
+    private int miniMax(Tauler t) {
+        int actual = Integer.MIN_VALUE, columnaJugar = 0;
+        int alpha = Integer.MIN_VALUE, beta = Integer.MAX_VALUE;
+        
+        for (int col = 0; col < t.getMida(); ++col){
+            if (t.movpossible(col)) {
+                Tauler tablaNueva = new Tauler(t);
+                tablaNueva.afegeix(col, colorNB);
+                int min = valorMin(tablaNueva, col, profundidad -1, alpha, beta);
+                if (min >= actual) { // poner >= o cambiar el valor de menos infinito a un poco mas para que se cumpla condicion
+                    actual = min;
+                    columnaJugar = col;
                 }
             }
-            return min;
         }
+        return columnaJugar;
     }
 
-    private int minimaxPoda(Tauler t, int prof, boolean esMax, int alpha, int beta) {
-        if (prof == 0) {
-            int heuristica = HeuristicaPocha(t); //funcion heuristica
-            return heuristica;
-        }
-        if (esMax) {
-            int colMax = 0;
-            int max = Integer.MIN_VALUE; //HeuristicaPocha(t);
-            for (int i = 0; i < t.getMida(); i++) {
-                if (t.movpossible(i)) {
-                    Tauler nou = new Tauler(t);
-                    nou.afegeix(i, 1);
-                    int aux = minimaxPoda(nou, prof - 1, false, alpha, beta);
-                    if (max < aux) {
-                        max = aux;
-                        colMax = i;
+    // Funcion que calcula la heuristica maxima de todos los estados siguientes posibles al estado indicado en la tabla t y se tiene en cuenta si es con o sin poda
+    private int valorMax(Tauler t, int columna, int prof, int alpha, int beta) {        
+       int actual = Integer.MIN_VALUE;
+       if (t.solucio(columna, colorNB) || t.solucio(columna, -colorNB)) actual = valorHeuristico(t, columna);
+       else if (prof == 0 || !t.espotmoure()) actual = 0; // funcion heuristica poner aqui
+       else {
+           for (int col = 0; col < t.getMida(); ++col) {
+                if (t.movpossible(col)){
+                    Tauler tablaNueva = new Tauler(t);
+                    tablaNueva.afegeix(col, colorNB);
+                    int min = valorMin(tablaNueva, col, prof-1, alpha, beta); // funcion heuristica poner aqui
+                    actual = Math.max(actual, min);
+                    if (poda) {
+                        alpha = Math.max(actual, alpha);
+                        if (alpha >= beta) break;
                     }
-                    alpha = Math.max(alpha, aux);
-                    if (beta<=alpha){
-                        i = t.getMida();
-                    }
-                    
-                    jugadasExploradas++;
                 }
-            }
-            if (prof == profundidad) {
-                return colMax;
-            }
-            return max;
-        } else {
-            int min = Integer.MAX_VALUE; //HeuristicaPocha(t);
-            for (int i = 0; i < t.getMida(); i++) {
-                if (t.movpossible(i)) {
-                    Tauler nou = new Tauler(t);
-                    nou.afegeix(i, -1);
-                    int aux = minimaxPoda(nou, prof - 1, true, alpha, beta);
-                    min = Math.min(min, aux);
-                    beta = Math.min(beta, aux);
-                    if (beta<=alpha){
-                        i = t.getMida();
-                    }
-                    
-                    jugadasExploradas++;
-                }
-            }
-            return min;
-        }
+           }
+       }
+       return actual;
     }
     
+    // Funcion que calcula la heuristica minima de todos los estados siguientes posibles al estado indicado en la tabla t y se tiene en cuenta si es con o sin poda
+    private int valorMin(Tauler t, int columna, int prof, int alpha, int beta) {
+       int actual = Integer.MAX_VALUE;
+        if (t.solucio(columna, colorNB) || t.solucio(columna, -colorNB)) actual = valorHeuristico(t, columna);       
+       else if (prof == 0 || !t.espotmoure()) actual = 0; // funcion heuristica poner aqui
+       else {
+           for (int col = 0; col < t.getMida(); col++) {
+                if (t.movpossible(col)){
+                    Tauler tablaNueva = new Tauler(t);
+                    tablaNueva.afegeix(col, -colorNB);
+                    int max = valorMax(tablaNueva, col, prof-1, alpha, beta);
+                    actual = Math.min(actual, max);
+                    if (poda) {
+                        beta = Math.min(actual, beta);
+                        if (alpha >= beta) break;
+                    }
+                }
+           }
+       }
+       return actual;
+    }    
+    
+    // Funcion que devuelve el valor heuristico para los eatdos de victoria o derrota
+    private int valorHeuristico(Tauler t, int columna) {
+        if (t.solucio(columna, colorNB)) return Integer.MAX_VALUE;
+        else return Integer.MIN_VALUE; //cambiar valor, es decir, un poco menos que infinito para que se pueda ejecutar arriba minimax o en la condicion del minimax poner >=
+    }
     
     private int HeuristicaPocha(Tauler t){
-        int res = 0;
-        
-        t.
+        int res = 0;              
         
         return res;
     }
 }
+    
+   
+
 
 // hacer minimax y heuristica separados
 // primero hacer minimax, si no tienes heuristica todavia pues hacer return 0 todo el rato
