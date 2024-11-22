@@ -1,15 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package edu.epsevg.prop.lab.c4;
 
 import static java.lang.Integer.min;
 
-/**
- *
- * @author wangm
- */
 public class MiniNB implements Jugador, IAuto {
 
     private String nombre;
@@ -17,16 +9,16 @@ public class MiniNB implements Jugador, IAuto {
     private int profundidad = 8;
     private boolean poda;
     private int colorNB = 1;
+    long tiempoInicial = 0;
 
-    private int[][] tablaPuntuacion = {
-        {3, 4, 5, 7, 7, 5, 4, 3},
-        {4, 6, 8, 11, 11, 8, 6, 4},
-        {5, 8, 11, 13, 13, 11, 8, 5},
-        {5, 8, 11, 13, 13, 11, 8, 5},
-        {5, 8, 11, 13, 13, 11, 8, 5},
-        {5, 8, 11, 13, 13, 11, 8, 5},
-        {4, 6, 8, 7, 7, 8, 6, 4},
-        {3, 4, 5, 7, 7, 5, 4, 3}};
+    private int[][] tablaPuntuacion = {{3, 4,  5,  7,  7,  5, 4, 3}, 
+                                       {4, 6,  8, 7, 7,  8, 6, 4}, 
+                                       {5, 8, 11, 11, 11, 11, 8, 5}, 
+                                       {5, 8, 11, 13, 13, 11, 8, 5}, 
+                                       {5, 8, 11, 13, 13, 11, 8, 5}, 
+                                       {5, 8, 11, 11, 11, 11, 8, 5}, 
+                                       {4, 6,  8,  7,  7,  8, 6, 4},
+                                       {3, 4,  5,  7,  7,  5, 4, 3}}; // recorrer toda la tabla, suma puntos donde esta la ficha del jugador, suma tus puntos totales y luego los del oponente y se resta ese seria el valor devuelto
 
     public MiniNB(int depth, boolean pruning) {
         nombre = "MiniNB";
@@ -38,9 +30,11 @@ public class MiniNB implements Jugador, IAuto {
     @Override
     public int moviment(Tauler t, int color) {
         colorNB = color;
+        jugadasExploradas = 0;        
+        tiempoInicial = System.currentTimeMillis();
         int columna_elegida = miniMax(t);
-        System.out.println("Numero de nodos explorados: " + jugadasExploradas);
-        jugadasExploradas = 0;
+        System.out.println(" Pone ficha en columna :" + columna_elegida);
+        System.out.println("Numero de nodos explorados: " + jugadasExploradas);       
         return columna_elegida;
     }
 
@@ -51,40 +45,39 @@ public class MiniNB implements Jugador, IAuto {
 
     // Funcion que implementa el algortimo MiniMax
     private int miniMax(Tauler t) {
-        int max = Integer.MIN_VALUE, columnaJugar = 0;
-        int alpha = Integer.MIN_VALUE, beta = Integer.MAX_VALUE;
-        t.pintaTaulerALaConsola();
+        int max = -30000, columnaJugar = 0;
+        int alpha = Integer.MIN_VALUE, beta = Integer.MAX_VALUE;        
         for (int col = 0; col < t.getMida(); ++col) {
             if (t.movpossible(col)) {
                 Tauler tablaNueva = new Tauler(t);
                 tablaNueva.afegeix(col, colorNB);
-                int value = valorColumna(tablaNueva, col);
-
-                int actual = valorMin(tablaNueva, col, profundidad - 1, alpha, beta);//+value;
+                int actual = valorMin(tablaNueva, col, profundidad - 1, alpha, beta);
                 System.out.println(actual + ":" + col);
-                if (actual >= max) { // poner >= o cambiar el valor de menos infinito a un poco mas para que se cumpla condicion
+                if (actual > max) { // poner >= o cambiar el valor de menos infinito a un poco mas para que se cumpla condicion
                     max = actual;
                     columnaJugar = col;
-                }
+                } 
             }
         }
+        long tiempoFinal = System.currentTimeMillis();
+        double tiempo = (tiempoFinal - tiempoInicial) / 1000.0;
+        System.out.println("Tiempo: " + tiempo + " s");
         return columnaJugar;
     }
 
     // Funcion que calcula la heuristica maxima de todos los estados siguientes posibles al estado indicado en la tabla t y se tiene en cuenta si es con o sin poda
     private int valorMax(Tauler t, int columna, int prof, int alpha, int beta) {
         ++jugadasExploradas;
-        int max = Integer.MIN_VALUE;
-        if (t.solucio(columna, -colorNB)) {
-            max = Integer.MIN_VALUE;
-        } else if (prof == 0 || !t.espotmoure()) {
-            max = valorHeuristico(t, columna); // funcion heuristica poner aqui
+        int max = -10000;
+        if (t.solucio(columna, colorNB) || t.solucio(columna, -colorNB)) max = valorHeuristico(t, columna);
+        else if (prof == 0 || !t.espotmoure()) {
+            max = heuristicaGlobal(t, colorNB); // funcion heuristica poner aqui
         } else {
             for (int col = 0; col < t.getMida(); ++col) {
                 if (t.movpossible(col)) {
                     Tauler tablaNueva = new Tauler(t);
-                    tablaNueva.afegeix(col, colorNB);
-                    int min = valorMin(tablaNueva, col, prof - 1, alpha, beta);
+                    tablaNueva.afegeix(col, colorNB);                    
+                    int min = valorMin(tablaNueva, col, prof - 1, alpha, beta) ; 
                     max = Math.max(max, min);
                     if (poda) {
                         alpha = Math.max(max, alpha);
@@ -101,17 +94,16 @@ public class MiniNB implements Jugador, IAuto {
     // Funcion que calcula la heuristica minima de todos los estados siguientes posibles al estado indicado en la tabla t y se tiene en cuenta si es con o sin poda
     private int valorMin(Tauler t, int columna, int prof, int alpha, int beta) {
         ++jugadasExploradas;
-        int min = Integer.MAX_VALUE;
-        if (t.solucio(columna, colorNB)) {
-            min = Integer.MAX_VALUE;
-        } else if (prof == 0 || !t.espotmoure()) {
-            min = valorHeuristico(t, columna); // funcion heuristica poner aqui
+        int min = 10000;
+        if (t.solucio(columna, colorNB) || t.solucio(columna, -colorNB)) min = valorHeuristico(t, columna);
+        else if (prof == 0 || !t.espotmoure()) {
+            min = heuristicaGlobal(t, colorNB); // funcion heuristica poner aqui
         } else {
             for (int col = 0; col < t.getMida(); col++) {
                 if (t.movpossible(col)) {
                     Tauler tablaNueva = new Tauler(t);
-                    tablaNueva.afegeix(col, -colorNB);
-                    int actual = valorMax(tablaNueva, col, prof - 1, alpha, beta);
+                    tablaNueva.afegeix(col, -colorNB);                   
+                    int actual = valorMax(tablaNueva, col, prof - 1, alpha, beta);                    
                     min = Math.min(min, actual);
                     if (poda) {
                         beta = Math.min(min, beta);
@@ -127,110 +119,91 @@ public class MiniNB implements Jugador, IAuto {
 
     // Funcion que devuelve el valor heuristico para los eatdos de victoria o derrota
     private int valorHeuristico(Tauler t, int columna) {
-        /*if (t.solucio(columna, colorNB)) {
-            return Integer.MAX_VALUE;
-        } else if (t.solucio(columna, -colorNB)) {
-            return Integer.MIN_VALUE; //cambiar valor, es decir, un poco menos que infinito para que se pueda ejecutar arriba minimax o en la condicion del minimax poner >=
-        }*/
-        int[] result = contarConsecutivos(t, colorNB);
-        
-        return result[0]*2+result[1]*5;//tablaPuntuacion[columna][i];
-    }
-
-    // devuelve el valor de la casilla a la que se ha puesto la ultima pieza
-    private int valorColumna(Tauler t, int columna) {
-        int i = 0;
-        while (t.getColor(i, columna) != 0 && i < 7) {
-            i++;
-        }
-        return tablaPuntuacion[columna][i - 1];
+        if (t.solucio(columna, colorNB)) return 10000;
+        else return -10000; //cambiar valor, es decir, un poco menos que infinito para que se pueda ejecutar arriba minimax o en la condicion del minimax poner >=
+    }    
+    
+    private int heuristicaGlobal (Tauler t, int color) {
+        int valorHeuristico = 0;
+        valorHeuristico = heuristicaTabla(t, color) + heuristicaAlineaciones(t, color);        
+        return valorHeuristico;
     }
     
-   public static  int[] contarConsecutivos(Tauler t, int jugador) {
-        int dosEnLinea = 0;
-        int tresEnLinea = 0;
-
-        // Contar en filas y columnas
-        for (int i = 0; i < 8; i++) {
-            int[] fila = new int[8];
-            for (int j = 0; j < 8; j++) {
-                fila[j] = t.getColor(i, j);
-            }
-            // Contar en filas
-            dosEnLinea += contarConsecutivosEnLinea(fila, jugador, 2);
-            tresEnLinea += contarConsecutivosEnLinea(fila, jugador, 3);
-
-            // Contar en columnas
-            int[] columna = new int[8];
-            for (int j = 0; j < 8; j++) {
-                columna[j] = t.getColor(j, i);
-            }
-            dosEnLinea += contarConsecutivosEnLinea(columna, jugador, 2);
-            tresEnLinea += contarConsecutivosEnLinea(columna, jugador, 3);
-        }
-
-        // Contar en diagonales
-        for (int k = -7; k <= 7; k++) {
-            int[] diagonalPrincipal = obtenerDiagonal(t, k, true);
-            int[] diagonalSecundaria = obtenerDiagonal(t, k, false);
-
-            if (diagonalPrincipal.length >= 2) {
-                dosEnLinea += contarConsecutivosEnLinea(diagonalPrincipal, jugador, 2);
-                tresEnLinea += contarConsecutivosEnLinea(diagonalPrincipal, jugador, 3);
-            }
-            if (diagonalSecundaria.length >= 2) {
-                dosEnLinea += contarConsecutivosEnLinea(diagonalSecundaria, jugador, 2);
-                tresEnLinea += contarConsecutivosEnLinea(diagonalSecundaria, jugador, 3);
+    
+    public int heuristicaTabla(Tauler t, int color) {
+    int h = 0;
+    for (int f = 0; f < t.getMida(); ++f) { 
+        for (int c = 0; c < t.getMida(); ++c) { 
+            int col = t.getColor(f, c); 
+            if (col != 0) { 
+                int signe = (col == color) ? 1 : -1; 
+                h += tablaPuntuacion[f][c] * signe; 
             }
         }
-        
-        int[] result = {dosEnLinea, tresEnLinea};
-        
-        return result;
+    }
+    return h;
+}
+    
+    private int heuristicaAlineaciones(Tauler t, int color) {
+    int h = 0;
+
+    int[][] direciones = {
+        {0, 1},   
+        {1, 0},   
+        {1, 1},   
+        {1, -1}};
+
+    for (int fil = 0; fil < t.getMida(); ++fil) {
+        for (int col = 0; col < t.getMida(); ++col) {
+            if (t.getColor(fil, col) == 0) return 0;
+
+            for (int[] dir : direciones) {
+                h += evaluarDireccion(t, fil, col, dir[0], dir[1], color);
+            }
+        }
     }
 
-    private static int contarConsecutivosEnLinea(int[] linea, int jugador, int longitud) {
-        int contador = 0;
-        int consecutivos = 0;
+    return h;
+}
 
-        for (int casilla : linea) {
-            if (casilla == jugador) {
-                consecutivos++;
-                if (consecutivos == longitud) {
-                    contador++;
-                }
-            } else {
-                consecutivos = 0;
-            }
-        }
-        return contador;
-    }
+private int evaluarDireccion(Tauler t, int fil, int col, int dRow, int dCol, int color) {
+    int jugador = 0, oponente = 0, vacia = 0;
+    int h = 0;
 
-    private static int[] obtenerDiagonal(Tauler t, int k, boolean principal) {
-        // k es el desplazamiento de la diagonal: 0 para la principal, -1 para abajo, +1 para arriba
-        // principal indica si es la diagonal principal o secundaria
-        int n = 7;
-        int[] diagonal;
-        int startRow = Math.max(0, -k);
-        int startCol = Math.max(0, k);
+    for (int i = 0; i < 4; ++i) { 
+        int newRow = fil + i * dRow;
+        int newCol = col + i * dCol;
 
-        if (principal) {
-            diagonal = new int[Math.min(n - startRow, n - startCol)];
-            for (int i = 0; i < diagonal.length; i++) {
-                diagonal[i] = t.getColor(startRow+i, startCol+i);//tablero[startRow + i][startCol + i];
-            }
+        if (newRow < 0 || newRow >= t.getMida() || newCol < 0 || newCol >= t.getMida()) break; // Fuera del tablero
+
+        int currentColor = t.getColor(newRow, newCol);
+        if (currentColor == color) {
+            jugador++;
+        } else if (currentColor == -color) {
+            oponente++;
         } else {
-            startRow = Math.max(0, k);
-            startCol = Math.max(0, -k);
-            diagonal = new int[Math.min(n - startRow, n - startCol)];
-            
-            for (int i = 0; i < diagonal.length; i++) {
-                //System.out.println(diagonal.length+":"+(startRow+i)+","+(7-(startCol+i)));
-                diagonal[i] = t.getColor(startRow+i, 7-(startCol+i));//tablero[startRow + i][7 - (startCol + i)];
-            }
+            vacia++;
         }
-        return diagonal;
     }
+
+    if (oponente == 0) { 
+        if (jugador == 3 && vacia == 1) h += 10;
+        else if (jugador == 2 && vacia == 2) h += 5;
+        else if (jugador == 1 && vacia == 3) h += 1;
+    }
+
+    if (jugador == 0) { 
+        if (oponente == 3 && vacia == 1) h -= 10;
+        else if (oponente == 2 && vacia == 2) h -= 5;
+        else if (oponente == 1 && vacia == 3) h -= 1;
+    }
+    
+    // con estos valores solo pierde en depth 4, true, p1,p2
+    return h;
+}
+
+    
+    
 }
 
 // hacer minimax y heuristica separados
