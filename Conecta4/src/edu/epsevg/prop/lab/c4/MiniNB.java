@@ -11,15 +11,25 @@ public class MiniNB implements Jugador, IAuto {
     private int colorNB = 1;
     long tiempoInicial = 0;
 
-    private int[][] tablaPuntuacion = {{3, 4,  5,  7,  7,  5, 4, 3}, 
+    /*private int[][] tablaPuntuacion = {{3, 4,  5,  7,  7,  5, 4, 3}, 
                                        {4, 6,  8, 7, 7,  8, 6, 4}, 
                                        {5, 8, 11, 11, 11, 11, 8, 5}, 
                                        {5, 8, 11, 13, 13, 11, 8, 5}, 
                                        {5, 8, 11, 13, 13, 11, 8, 5}, 
                                        {5, 8, 11, 11, 11, 11, 8, 5}, 
                                        {4, 6,  8,  7,  7,  8, 6, 4},
-                                       {3, 4,  5,  7,  7,  5, 4, 3}}; // recorrer toda la tabla, suma puntos donde esta la ficha del jugador, suma tus puntos totales y luego los del oponente y se resta ese seria el valor devuelto
-
+                                       {3, 4,  5,  7,  7,  5, 4, 3}};*/ // recorrer toda la tabla, suma puntos donde esta la ficha del jugador, suma tus puntos totales y luego los del oponente y se resta ese seria el valor devuelto
+private int[][] tablaPuntuacion = {
+    {3, 4,  5,  9,  9,  5, 4, 3}, 
+    {4, 6,  8, 12, 12,  8, 6, 4}, 
+    {5, 8, 11, 15, 15, 11, 8, 5}, 
+    {9, 12, 15, 20, 20, 15, 12, 9}, 
+    {9, 12, 15, 20, 20, 15, 12, 9}, 
+    {5, 8, 11, 15, 15, 11, 8, 5}, 
+    {4, 6,  8, 12, 12,  8, 6, 4}, 
+    {3, 4,  5,  9,  9,  5, 4, 3}
+};
+    
     public MiniNB(int depth, boolean pruning) {
         nombre = "MiniNB";
         jugadasExploradas = 0;
@@ -125,7 +135,8 @@ public class MiniNB implements Jugador, IAuto {
     
     private int heuristicaGlobal (Tauler t, int color) {
         int valorHeuristico = 0;
-        valorHeuristico = heuristicaTabla(t, color) + heuristicaAlineaciones(t, color);
+        //valorHeuristico = heuristicaTabla(t, color) + heuristicaAlineaciones(t, color);
+        valorHeuristico = heuristicaProva(t, color);
         return valorHeuristico;
     }
     
@@ -202,8 +213,108 @@ private int evaluarDireccion(Tauler t, int fil, int col, int dRow, int dCol, int
     return h;
 }
 
+private int heuristicaProva(Tauler t, int color){
+    int h = 0, hho = 1;
+    boolean horitz = true;
     
+    for (int i = 0; i<t.getMida(); i++){
+        int[] fila = new int[t.getMida()];
+        int[] colum = new int[t.getMida()];
+        for (int j = 0; j<t.getMida(); j++){
+            if (horitz) fila[j] = t.getColor(i, j);
+            colum[j] = t.getColor(j, i);
+            int col = t.getColor(i, j); 
+            if (col != 0) { 
+                int signe = (col == color) ? 1 : -1; 
+                h += tablaPuntuacion[i][j] * signe; 
+            }
+        }
+        if (horitz) {
+            hho = evaluateLinea(fila, color, false);
+            h += hho;
+        }
+        if (hho==0) horitz = false;
+        h += evaluateLinea(colum, color, true);
+    }
     
+    for (int k = -7; k <= 7; k++) {
+        int[] diagonalPrincipal = obtenerDiagonal(t, k, true);
+        int[] diagonalSecundaria = obtenerDiagonal(t, k, false);
+
+        if (diagonalPrincipal.length >= 4) {
+            h += evaluateLinea(diagonalPrincipal, color, false);
+        }
+        if (diagonalSecundaria.length >= 4) {
+            h += evaluateLinea(diagonalSecundaria, color, false);
+        }
+    }
+    
+    return h;
+}
+    
+private int evaluateLinea(int[] lin, int color, boolean vertical){
+    int h = 0;
+    int jugCons = 0, opoCons = 0, jugZero = 0, opoZero = 0;
+    
+    for (int i : lin){
+        if (i==color){
+            if (opoCons+opoZero >= 4){
+                h -= jugCons*4;
+            }
+            jugCons++;
+            opoZero = 0;
+            opoCons = 0;
+        }
+        else if (i==-color){
+            if (jugCons+jugZero >= 4){
+                h += jugCons*5;
+            }
+            opoCons++;
+            jugZero = 0;
+            jugCons = 0;
+        }
+        else if (i==0){
+            opoZero++;
+            jugZero++;
+            if (vertical){
+                break;
+            }
+        }
+    }
+    if (jugCons + jugZero >= 4) {
+        h += jugCons * 5;
+    }
+    if (opoCons + opoZero >= 4) {
+        h -= jugCons * 4;
+    }
+    return h;
+}    
+
+    private static int[] obtenerDiagonal(Tauler t, int k, boolean principal) {
+        // k es el desplazamiento de la diagonal: 0 para la principal, -1 para abajo, +1 para arriba
+        // principal indica si es la diagonal principal o secundaria
+        int n = 7;
+        int[] diagonal;
+        int startRow = Math.max(0, -k);
+        int startCol = Math.max(0, k);
+
+        if (principal) {
+            diagonal = new int[Math.min(n - startRow, n - startCol)];
+            for (int i = 0; i < diagonal.length; i++) {
+                diagonal[i] = t.getColor(startRow+i, startCol+i);//tablero[startRow + i][startCol + i];
+            }
+        } else {
+            startRow = Math.max(0, k);
+            startCol = Math.max(0, -k);
+            diagonal = new int[Math.min(n - startRow, n - startCol)];
+            
+            for (int i = 0; i < diagonal.length; i++) {
+                //System.out.println(diagonal.length+":"+(startRow+i)+","+(7-(startCol+i)));
+                diagonal[i] = t.getColor(startRow+i, 7-(startCol+i));//tablero[startRow + i][7 - (startCol + i)];
+            }
+        }
+        return diagonal;
+    }
 }
 
 
