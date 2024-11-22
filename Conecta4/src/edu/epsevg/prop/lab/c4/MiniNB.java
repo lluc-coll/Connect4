@@ -125,7 +125,7 @@ public class MiniNB implements Jugador, IAuto {
     
     private int heuristicaGlobal (Tauler t, int color) {
         int valorHeuristico = 0;
-        valorHeuristico = heuristicaTabla(t, color) + heuristicaAlineaciones(t, color);        
+        valorHeuristico = heuristicaTabla(t, color) + heuristicaAlineaciones(t, color);
         return valorHeuristico;
     }
     
@@ -155,7 +155,7 @@ public class MiniNB implements Jugador, IAuto {
 
     for (int fil = 0; fil < t.getMida(); ++fil) {
         for (int col = 0; col < t.getMida(); ++col) {
-            if (t.getColor(fil, col) == 0) return 0;
+            if (t.getColor(fil, col) == 0) continue;
 
             for (int[] dir : direciones) {
                 h += evaluarDireccion(t, fil, col, dir[0], dir[1], color);
@@ -205,6 +205,7 @@ private int evaluarDireccion(Tauler t, int fil, int col, int dRow, int dCol, int
     
     
 }
+
 
 // hacer minimax y heuristica separados
 // primero hacer minimax, si no tienes heuristica todavia pues hacer return 0 todo el rato
