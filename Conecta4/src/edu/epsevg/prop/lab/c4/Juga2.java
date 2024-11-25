@@ -32,10 +32,7 @@ public class Juga2 extends javax.swing.JFrame {
     int otherColor;
     boolean autoMode = true;
     boolean estaPensant = false;
-    static Jugador[] jug1 = {new MiniNB(4,true), new MiniNB(4,true), new MiniNB(8,true), new MiniNB(8,true), new Profe(4, true), new Profe(4, false), new Profe(8, true), new Profe(8, false)};
-    static Jugador[] jug2 = {new Profe(4, true), new Profe(4, false), new Profe(8, true), new Profe(8, false), new MiniNB(4,true), new MiniNB(4,true), new MiniNB(8,true), new MiniNB(8,true)};
-    static String[] helps = {"MvP:4, true", "MvP:4, false", "MvP:8, true", "MvP:8, false", "PvM:4, true", "PvM:4, false", "PvM:8, true", "PvM:8, false"};
-    static int cont = 0;
+
     /**
      * Creates new form NewJFrame
      */
@@ -99,10 +96,9 @@ public class Juga2 extends javax.swing.JFrame {
 
         // Definiu al vostre gust els jugadors a enfrontar.
         //Jugador p1 = new Manual();
-        //Jugador p1 = new Profe(4, true);
+        Jugador p2 = new MiniNB(8,false);
         
-        Jugador p2 = jug1[0];
-        Jugador p1 = jug2[0]; 
+        Jugador p1 = new Profe(8, true); 
 
         boolean autoMode = true;
         final Juga2 j = new Juga2(p1, p2, autoMode);
@@ -115,7 +111,6 @@ public class Juga2 extends javax.swing.JFrame {
                 j.mostraTornActual();
             }
         });
-        
     }
 
     private void mostraTornActual() {
@@ -315,7 +310,7 @@ public class Juga2 extends javax.swing.JFrame {
         String text1 = "", text2 = "", text3 = "", dTitle = "";
 
         if (t.solucio(colu, color) || !t.espotmoure()) {
-            cont++;
+
             if (t.solucio(colu, color)) {
                 if (currentPlayer == player1) {
                     text1 = "WINNER";
@@ -328,24 +323,19 @@ public class Juga2 extends javax.swing.JFrame {
                     text2 = "BLAU AMB MOVIMENT A COLUMNA " + (colu + 1);
                     dTitle = "GUANYA P2(" + currentPlayer.nom() + ")";
                 }
-                System.out.println(currentPlayer.nom()+" -> "+helps[cont-1]);
             } else {
                 // no es pot moure
                 text1 = "NO PUC MOURE";
                 text3 = "NO PUC MOURE";
                 text2 = "TAULES";
                 dTitle = "TAULES";
-                System.out.println("taules -> "+helps[cont-1]);
             }
-            
+
             jTextField1.setText(text1);
             jTextField2.setText(text2);
             jTextField3.setText(text3);
-            
-            player1 = jug1[cont];
-            player2 = jug2[cont];
-            init();
-            /*int n = JOptionPane.showConfirmDialog(
+
+            int n = JOptionPane.showConfirmDialog(
                     this, dTitle,
                     "Tornar a jugar",
                     JOptionPane.YES_NO_OPTION);
@@ -353,7 +343,7 @@ public class Juga2 extends javax.swing.JFrame {
                 init();
             } else if (n == JOptionPane.NO_OPTION) {
                 System.exit(0);
-            }*/
+            }
         } else {
             canviTorn();
         }
