@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MiniNB implements Jugador, IAuto {
+
     /**
      * Nom del millor jugador de Connecta-4!
      */
@@ -31,7 +32,8 @@ public class MiniNB implements Jugador, IAuto {
     private long tiempoInicial = 0;
 
     /**
-     * Taula de puntuacions del tauler. Cada casella representa la puntuacio d'aquella casella al tauler.
+     * Taula de puntuacions del tauler. Cada casella representa la puntuacio
+     * d'aquella casella al tauler.
      */
     public int[][] tablaPuntuacion = {
         {3, 4, 5, 9, 9, 5, 4, 3},
@@ -46,6 +48,7 @@ public class MiniNB implements Jugador, IAuto {
 
     /**
      * Constructor del millor jugador de Connecta-4!
+     *
      * @param depth Profunditat a la que es vol arribar.
      * @param pruning Boolean per saber si aplicar poda alpha-beta o no.
      */
@@ -65,7 +68,7 @@ public class MiniNB implements Jugador, IAuto {
         //System.out.println("Pone ficha en columna : " + columna_elegida);
         jugadasTotalesPartida += jugadasExploradas;
         System.out.println("Numero de nodos explorados: " + jugadasExploradas);
-        System.out.println("Numero de nodos totales explorados: " + jugadasTotalesPartida);    
+        System.out.println("Numero de nodos totales explorados: " + jugadasTotalesPartida);
         return columna_elegida;
     }
 
@@ -75,13 +78,14 @@ public class MiniNB implements Jugador, IAuto {
     }
 
     /**
-     * Funcion que implementa el algortimo MiniMax.
-     * Si "poda" = true, obte les jugades i les ordena de major a menor probabilitat de guanyar.
+     * Funcion que implementa el algortimo MiniMax. Si "poda" = true, obte les
+     * jugades i les ordena de major a menor probabilitat de guanyar.
+     *
      * @param t Tauler actual de la partida.
      * @return La columna amb mes probabilitats de guanyar.
      */
     public int miniMax(Tauler t) {
-        int max = -30000, columnaJugar = 0;
+        int max = -300000, columnaJugar = 0;
         int alpha = Integer.MIN_VALUE, beta = Integer.MAX_VALUE;
 
         if (poda) {
@@ -119,8 +123,9 @@ public class MiniNB implements Jugador, IAuto {
     }
 
     /**
-     * Funcio maximitzadora del minimax.
-     * Si "poda" = true, obte les jugades i les ordena de major a menor probabilitat de guanyar.
+     * Funcio maximitzadora del minimax. Si "poda" = true, obte les jugades i
+     * les ordena de major a menor probabilitat de guanyar.
+     *
      * @param t Tauler en la profunditat "prof"
      * @param columna Columna a la qual s'ha posat la ultima fitxa
      * @param prof Profunditat actual
@@ -135,9 +140,7 @@ public class MiniNB implements Jugador, IAuto {
             return max;
         } else if (prof == 0 || !t.espotmoure()) {
             return heuristicaGlobal(t, colorNB);
-        }
-
-        else if (poda) {
+        } else if (poda) {
             // Con poda: genera y ordena jugadas
             List<int[]> movimientos = obtenerJugadas(t, colorNB);
             for (int[] jugada : movimientos) {
@@ -166,8 +169,9 @@ public class MiniNB implements Jugador, IAuto {
     }
 
     /**
-     * Funcio minimitzadora del minimax.
-     * Si "poda" = true, obte les jugades i les ordena de major a menor probabilitat de guanyar.
+     * Funcio minimitzadora del minimax. Si "poda" = true, obte les jugades i
+     * les ordena de major a menor probabilitat de guanyar.
+     *
      * @param t Tauler en la profunditat "prof"
      * @param columna Columna a la qual s'ha posat la ultima fitxa
      * @param prof Profunditat actual
@@ -182,9 +186,7 @@ public class MiniNB implements Jugador, IAuto {
             return min;
         } else if (prof == 0 || !t.espotmoure()) {
             return heuristicaGlobal(t, colorNB);
-        }
-
-        else if (poda) {
+        } else if (poda) {
             // Con poda: genera y ordena jugadas
             List<int[]> movimientos = obtenerJugadas(t, -colorNB);
             for (int[] jugada : movimientos) {
@@ -214,9 +216,11 @@ public class MiniNB implements Jugador, IAuto {
 
     /**
      * Funcio per obtenir jugades donat un Tauler t
+     *
      * @param t Tauler actual
      * @param color Color al qual li toca tirar
-     * @return Els moviments possibles ordenats heuristicament (Per aplicar poda mes eficientment).
+     * @return Els moviments possibles ordenats heuristicament (Per aplicar poda
+     * mes eficientment).
      */
     public List<int[]> obtenerJugadas(Tauler t, int color) {
         List<int[]> jugadas = new ArrayList<>();
@@ -236,7 +240,9 @@ public class MiniNB implements Jugador, IAuto {
     }
 
     /**
-     * Funcio per ajuntar les dos heuristiques i calcular les jugades explorades.
+     * Funcio per ajuntar les dos heuristiques i calcular les jugades
+     * explorades.
+     *
      * @param t Tauler on calcular heuristica
      * @param color Color jugador
      * @return El valor heuristic final
@@ -249,6 +255,7 @@ public class MiniNB implements Jugador, IAuto {
 
     /**
      * Funcio heuristica per la taula de puntuacions
+     *
      * @param t Tauler on calcular heuristica
      * @param color Color jugador
      * @return El valor heuristic de la suma i resta dels valors de la taula.
@@ -271,6 +278,7 @@ public class MiniNB implements Jugador, IAuto {
 
     /**
      * Funcio auxiliar per evaluar cada linea
+     *
      * @param t Tauler on calcular heuristica
      * @param color Color jugador
      * @return La suma de valors heuristics de cada linea
@@ -288,6 +296,7 @@ public class MiniNB implements Jugador, IAuto {
 
     /**
      * Funcio que calcula el valor de les lines horitzontals
+     *
      * @param t Tauler on calcular heuristica
      * @param color Color jugador
      * @return El valor heuristic de les linies horitzontals
@@ -296,13 +305,18 @@ public class MiniNB implements Jugador, IAuto {
         int score = 0;
         int tamano = t.getMida();
         for (int fila = 0; fila < tamano; fila++) {
-            score += evaluarLinea(t, color, fila, 0, 0, 1);
+            int[] aux = evaluarLinea(t, color, fila, 0, 0, 1, false);
+            if (aux[1] == 1) {
+                break;
+            }
+            score += aux[0];
         }
         return score;
     }
 
     /**
      * Funcio que calcula el valor de les lines verticals
+     *
      * @param t Tauler on calcular heuristica
      * @param color Color jugador
      * @return El valor heuristic de les linies verticals
@@ -314,13 +328,14 @@ public class MiniNB implements Jugador, IAuto {
             if (t.getColor(0, col) == 0) {
                 continue;
             }
-            score += evaluarLinea(t, color, 0, col, 1, 0);
+            score += evaluarLinea(t, color, 0, col, 1, 0, true)[0];
         }
         return score;
     }
 
     /**
      * Funcio que calcula el valor de les lines diagonal amunt-esquerra
+     *
      * @param t Tauler on calcular heuristica
      * @param color Color jugador
      * @return El valor heuristic de les linies diagonal amunt-esquerra
@@ -331,12 +346,12 @@ public class MiniNB implements Jugador, IAuto {
 
         // Diagonales desde la columna 0 hacia abajo
         for (int fila = 0; fila <= tamano - 4; fila++) {
-            score += evaluarLinea(t, color, fila, 0, 1, 1); // Dirección hacia abajo y derecha
+            score += evaluarLinea(t, color, fila, 0, 1, 1, false)[0]; // Dirección hacia abajo y derecha
         }
 
         // Diagonales desde la fila 0 hacia la derecha
         for (int col = 1; col <= tamano - 4; col++) {
-            score += evaluarLinea(t, color, 0, col, 1, 1); // Dirección hacia abajo y derecha
+            score += evaluarLinea(t, color, 0, col, 1, 1, false)[0]; // Dirección hacia abajo y derecha
         }
 
         return score;
@@ -344,6 +359,7 @@ public class MiniNB implements Jugador, IAuto {
 
     /**
      * Funcio que calcula el valor de les lines diagonal amunt-dreta
+     *
      * @param t Tauler on calcular heuristica
      * @param color Color jugador
      * @return El valor heuristic de les linies diagonal amunt-dreta
@@ -354,35 +370,40 @@ public class MiniNB implements Jugador, IAuto {
 
         // Diagonales desde la columna 0 hacia arriba
         for (int fila = 3; fila < tamano; fila++) { // Empieza en fila 3 para asegurar longitud mínima de 4
-            score += evaluarLinea(t, color, fila, 0, -1, 1); // Dirección hacia arriba y derecha
+            score += evaluarLinea(t, color, fila, 0, -1, 1, false)[0]; // Dirección hacia arriba y derecha
         }
 
         // Diagonales desde la última fila hacia la derecha
         for (int col = 1; col <= tamano - 4; col++) {
-            score += evaluarLinea(t, color, tamano - 1, col, -1, 1); // Dirección hacia arriba y derecha
+            score += evaluarLinea(t, color, tamano - 1, col, -1, 1, false)[0]; // Dirección hacia arriba y derecha
         }
 
         return score;
     }
 
     /**
-     * Funcio que evalua cada linea mirant el numero de fitxes seguides que te cada jugador.
+     * Funcio que evalua cada linea mirant el numero de fitxes seguides que te
+     * cada jugador.
+     *
      * @param t Tauler on calcular heuristica
      * @param color Color jugador
      * @param filaIn Fila desde donde se inicia
      * @param columnaIn Columna desde donde se inicia
      * @param filaDelta Direccion horizontal
      * @param columnaDelta Direccion vertical
-     * @return La suma de valors heuristics de la fila
+     * @param vertical Boolean per aplicar la optimitzacio vertical
+     * @return Array de Int amb dos valors: La suma de valors heuristics de la fila i un 1 si la fila han estat tot zeros
      */
-    public int evaluarLinea(Tauler t, int color, int filaIn, int columnaIn, int filaDelta, int columnaDelta) {
+    public int[] evaluarLinea(Tauler t, int color, int filaIn, int columnaIn, int filaDelta, int columnaDelta, boolean vertical) {
         int h = 0;
         int tamano = t.getMida();
         int jugCons = 0, opoCons = 0, jugZero = 0, opoZero = 0;
         int fila = filaIn, col = columnaIn;
+        boolean allZeros = true;
         while (fila >= 0 && fila < tamano && col >= 0 && col < tamano) {
             int celda = t.getColor(fila, col);
             if (celda == color) {
+                allZeros = false;
                 if (opoCons + opoZero >= 4) {
                     h -= returnH(opoCons);
                 }
@@ -390,6 +411,7 @@ public class MiniNB implements Jugador, IAuto {
                 opoZero = 0;
                 opoCons = 0;
             } else if (celda == -color) {
+                allZeros = false;
                 if (jugCons + jugZero >= 4) {
                     h += returnH(jugCons);
                 }
@@ -399,6 +421,11 @@ public class MiniNB implements Jugador, IAuto {
             } else if (celda == 0) {
                 opoZero++;
                 jugZero++;
+                if (vertical) {
+                    jugZero += tamano-col;
+                    opoZero += tamano-col;
+                    break;
+                }
             }
             fila += filaDelta;
             col += columnaDelta;
@@ -410,11 +437,17 @@ public class MiniNB implements Jugador, IAuto {
             h -= returnH(opoCons);
         }
 
-        return h;
+        int totZeros = 0;
+        if (allZeros) {
+            totZeros = 1;
+        }
+        int[] ret = {h, totZeros};
+        return ret;
     }
 
     /**
      * Funcio heuristica final
+     *
      * @param jugCons Numero de fitxes seguides (poden tenir espais entremig)
      * @return Un valor heuristic depenent de les fitxes seguides
      */
@@ -429,7 +462,7 @@ public class MiniNB implements Jugador, IAuto {
             default:
                 break;
         }
-        if (jugCons > 3){
+        if (jugCons > 3) {
             return 50;
         }
         return 0;
